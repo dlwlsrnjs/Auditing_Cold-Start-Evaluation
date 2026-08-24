@@ -1,0 +1,16 @@
+# core analysis (enough for reproduce.py, count_ordering.py, audit_eedi.py)
+numpy>=1.24
+pandas>=2.0
+pyarrow>=12.0
+scipy>=1.10
+scikit-learn>=1.3
+
+# training and generation (only needed to rerun experiments from raw MIMIC)
+torch>=2.0
+transformers>=4.40
+peft>=0.10
+accelerate>=0.29
+lightgbm>=4.0
+
+# cohort extraction from BigQuery (optional path)
+google-cloud-bigquery>=3.0

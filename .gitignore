@@ -1,0 +1,9 @@
+# credentialed / patient-derived artifacts must never be committed
+mimic/out/*.parquet
+mimic/out/preds/
+mimic/out/*.npy
+mimic/out/*lora*/
+mimic/physionet.org/
+eedi/
+*.pyc
+__pycache__/

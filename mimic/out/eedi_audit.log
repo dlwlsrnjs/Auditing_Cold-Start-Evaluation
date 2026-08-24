@@ -1,0 +1,41 @@
+loading answers ...
+  15,867,850 timestamped answers, 118,971 students, 27,613 questions
+  log spans 2018-09-01 .. 2020-05-02
+  rare questions: 17,564 of 27,613 (63.6% of items, 20% of answer mass)
+  1,221,954 episodes (student-days)
+
+--- user axis  (first activity day vs later)  (censoring rule: cens_admin) ---
+  n cold 118,971   n warm 1,102,983
+  censoring rate            cold  0.187%   warm  1.970%   r_q=0.095
+  return rate, observed     cold 78.553%   warm 78.838%   r_p=1.004
+  return rate, zero-imputed cold 78.407%   warm 77.285%
+  warm-cold gap  observed +0.28 pt   zero-imputed -1.12 pt
+  distortion D  measured +1.41 pt   closed form +1.41 pt   (attenuates the gap)
+  reported/observed = -3.938x
+
+--- item axis  (rare first question vs common)  (censoring rule: cens_admin) ---
+  n cold 253,702   n warm 968,252
+  censoring rate            cold  2.662%   warm  1.570%   r_q=1.696
+  return rate, observed     cold 74.707%   warm 79.873%   r_p=1.069
+  return rate, zero-imputed cold 72.719%   warm 78.619%
+  warm-cold gap  observed +5.17 pt   zero-imputed +5.90 pt
+  distortion D  measured -0.73 pt   closed form -0.73 pt   (inflates the gap)
+  reported/observed = +1.142x
+
+--- user axis  (first activity day vs later)  (censoring rule: cens_naive) ---
+  n cold 118,971   n warm 1,102,983
+  censoring rate            cold  2.424%   warm 10.525%   r_q=0.230
+  return rate, observed     cold 80.354%   warm 86.376%   r_p=1.075
+  return rate, zero-imputed cold 78.407%   warm 77.285%
+  warm-cold gap  observed +6.02 pt   zero-imputed -1.12 pt
+  distortion D  measured +7.14 pt   closed form +7.14 pt   (attenuates the gap)
+  reported/observed = -0.186x
+
+--- item axis  (rare first question vs common)  (censoring rule: cens_naive) ---
+  n cold 253,702   n warm 968,252
+  censoring rate            cold 12.123%   warm  9.111%   r_q=1.331
+  return rate, observed     cold 82.751%   warm 86.500%   r_p=1.045
+  return rate, zero-imputed cold 72.719%   warm 78.619%
+  warm-cold gap  observed +3.75 pt   zero-imputed +5.90 pt
+  distortion D  measured -2.15 pt   closed form -2.15 pt   (inflates the gap)
+  reported/observed = +1.574x
