@@ -15,44 +15,33 @@ channel:
 
 ---
 
-## Data access, and what this repository can and cannot give you
-
-MIMIC-IV is credentialed data under a PhysioNet data use agreement, so **no
-patient-level file is in this repository**. What is here is:
-
-* every script in the pipeline, from cohort construction to the audits;
-* `mimic/out/results_mtl.jsonl` — per-run **aggregate** metrics (587 runs), with
-  no identifiers and no row-level data. These are the numbers printed in the
-  paper.
-
-That is enough to **recompute every reported effect without any data access**
-(`reproduce.py`). It is not enough to retrain: for that you need PhysioNet
-credentialed access to MIMIC-IV v3.1 and MIMIC-IV-Note v2.2, after which the
-scripts here rebuild everything. `mimic/out/README.md` lists exactly which
-derived files are withheld and why.
-
-Two analyses cannot be reproduced from the released file because they need
-per-admission predictions, which are patient-level: the test-set bootstrap
-(`bootstrap_primary.py`) and the disaggregated performance breakdown
-(`subgroup_fairness.py`). Both scripts are included and run once you have
-rebuilt `mimic/out/preds/`.
-
----
-
-## Quick start — check the paper's numbers
+## Reproduce everything with one command
 
 ```bash
 pip install numpy pandas pyarrow scipy scikit-learn
 python3 reproduce.py
 ```
 
-This prints every headline effect recomputed from `results_mtl.jsonl` next to
-the value printed in the paper, with a paired-*t* *p*-value, a 95% interval and
-the seed count. A `!` marks any disagreement; a clean run prints none.
+That regenerates, from the aggregate results shipped here and with **no MIMIC
+access**:
+
+* **Table 2** (lower block) — what the labelling convention costs the fitted model, per segment
+* **Table 3** — eight design families, nine augmentation configurations, against C1 and C2
+* **Table 4** — the pre-specified primary endpoint, every arm, converted into deaths
+* **Table 5** — the eight secondary comparisons with Holm step-down correction
+* **Table 6** — laboratory features, and whether the persona gain survives them
+* the **"81 of 82 configurations"** segment-ordering claim
+* **27 headline effects**, each printed next to the value in the paper, with a
+  paired-*t* *p*-value, a 95% interval and the seed count
+
+A `!` marks any recomputed value that disagrees with the paper, and the script
+exits non-zero if there is one. A clean run prints none. Narrower views:
 
 ```bash
-python3 reproduce.py audit2      # one section: audit1 audit2 audit3 q3 hospice
-python3 mimic/count_ordering.py  # the "81 of 82 configurations" claim
+python3 reproduce.py --only tables     # the tables
+python3 reproduce.py --only numbers    # the headline effects
+python3 reproduce.py --only missing    # what needs credentialed data, and how
+python3 reproduce.py --list            # what each section covers
 ```
 
 ### How the comparisons are formed
@@ -61,30 +50,36 @@ Every effect is a **paired difference across seeds within one tag series**.
 Series differ in what they vary (patient split, metric set, seed count), and
 **their C1 baselines differ by up to 0.31 aggregate AUROC points — more than
 most effects in the paper**, so a cross-series delta is meaningless. Several tag
-names are also misleading. The pairings the paper uses:
+names are also misleading, so `reproduce.py` states every pairing it uses. Three
+worth knowing before reading any tag:
 
-| claim | arm | control | seeds |
-|---|---|---|---|
-| oracle anchor `+0.33` | `sat-txt-oracle` | `sat-txt-c1` | 15 |
-| prior anchor `−1.01` | `sat-txt-prior` | `sat-txt-c1` | 15 |
-| permuted-within-group anchor `−0.38` | `rm-permanchor` | `rm-base` | 5 |
-| raw simulator `−2.11` | `fx-inj-sim` | `fx-base` | 5 |
-| recalibrated simulator `+0.01` | `fx-inj-simcal-exact` | `fx-base` | 5 |
-| personas vs C1 `+0.17` | `rm-persona` | `rm-base` | 5 |
-| personas vs C2, primary endpoint `+3.23` | `rm-persona` | `rm-naive` | 5 |
-| text permutation `+2.52` | `rm-persona-shuf{,2,3,4}` | `rm-naive` | 5 × 4 draws |
-| flattened labels `+0.02` | `rm-persona-flatlabel` | `rm-base` | 5 |
-| labels permuted within code `−0.03` | `rm-persona-codeshuf` | `rm-persona` | 5 |
-| labels permuted across codes `−0.15` | `rm-persona-chapshuf` | `rm-persona` | 5 |
-| laboratory block `+21.21` AUPRC | `rm2-labs` | `rm-base` | 5 |
-| test count alone `+4.61` AUPRC | `lg-labn` | `rm-base` | 5 |
-| hospice-relabelled mortality | `hosp-persona` | `hosp-base` | 5 |
-
-`rm-naive` is **C2**, the content-matched non-LLM control — not a naive
-baseline. `rm-base` is C1. `sat-*` without `txt` is a different configuration
-from `sat-txt-*`; pairing across the two gives a wrong answer.
+* `rm-naive` is **C2**, the content-matched non-LLM control — not a naive baseline.
+* `rm-base` is **C1**. `fx-base` is C1 of a different series; do not cross them.
+* the anchors live in `sat-txt-*`, not `sat-*`. Pairing `sat-oracle` with
+  `sat-txt-c1` gives `+3.15` where the paper reports `+0.33`.
 
 ---
+
+## Data access: what is here, and what cannot be
+
+MIMIC-IV is credentialed data under a PhysioNet data use agreement, so **no
+patient-level file is in this repository**. What is here is:
+
+* every script in the pipeline, from cohort construction to the audits;
+* `mimic/out/results_mtl.jsonl` — per-run **aggregate** metrics (583 runs), with
+  no identifiers and no row-level data. These are the numbers printed in the
+  paper, and they are what `reproduce.py` reads.
+
+That is enough to check every reported effect. It is not enough to retrain: for
+that you need PhysioNet credentialed access to MIMIC-IV v3.1 and MIMIC-IV-Note
+v2.2, after which the scripts here rebuild everything. `mimic/out/README.md`
+lists exactly which derived files are withheld and why.
+
+Three results need per-admission predictions, which are patient-level, so they
+are the one thing `reproduce.py` cannot recompute: the test-set bootstrap on the
+primary endpoint (`bootstrap_primary.py`), the disaggregated performance
+breakdown (`subgroup_fairness.py`), and the upper block of Table 2, which comes
+from the cohort (`fix_censoring.py`). All three scripts are included.
 
 ## The public-log audit — no credentialed data needed
 
